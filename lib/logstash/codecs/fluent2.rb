@@ -40,8 +40,9 @@ class LogStash::Codecs::Fluent2 < LogStash::Codecs::Base
 
   def decode(data)
     begin
-      tag, _payload = MessagePack.unpack(data)
-      @decoder.feed_each(_payload) do |epochtime, map|
+      @decoder.feed(data)
+      @decoder.each do |tag, _payload|
+        epochtime, map = MessagePack.unpack(_payload)
         event = LogStash::Event.new(map.merge(
           LogStash::Event::TIMESTAMP => LogStash::Timestamp.at(epochtime),
           "tags" => tag
