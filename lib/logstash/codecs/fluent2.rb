@@ -47,7 +47,7 @@ class LogStash::Codecs::Fluent2 < LogStash::Codecs::Base
       @decoder.feed(data)
       @decoder.each do |tag, _payload|
         entry_decoder = MessagePack::Unpacker.new
-        entry_decoder.feed_each(entries) do |entry|
+        entry_decoder.feed_each(_payload) do |entry|
           epochtime, map = entry
           event = LogStash::Event.new(map.merge(
             LogStash::Event::TIMESTAMP => LogStash::Timestamp.at(epochtime),
