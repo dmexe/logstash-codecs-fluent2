@@ -38,15 +38,22 @@ class LogStash::Codecs::Fluent2 < LogStash::Codecs::Base
 
   public
 
+  def debug(str)
+    $stdout.puts(str) if ENV['DEBUG']
+  end
+
   def decode(data)
     begin
+      debug("[fluent2] feed data=#{data.bytesize} bytes")
       @decoder.feed(data)
       @decoder.each do |tag, _payload|
+        debug("[fluent2] entry tag=#{tag} payload=#{_payload.bytesize} bytes")
         epochtime, map = MessagePack.unpack(_payload)
         event = LogStash::Event.new(map.merge(
           LogStash::Event::TIMESTAMP => LogStash::Timestamp.at(epochtime),
           "tags" => tag
         ))
+        debug("[fluent2] event=#{map.inspect}")
         yield event
       end
     rescue Exception => e
