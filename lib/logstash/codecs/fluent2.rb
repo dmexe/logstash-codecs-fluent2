@@ -51,7 +51,7 @@ class LogStash::Codecs::Fluent2 < LogStash::Codecs::Base
           epochtime, map = entry
           event = LogStash::Event.new(map.merge(
             LogStash::Event::TIMESTAMP => LogStash::Timestamp.at(epochtime),
-            "tags" => tag
+            "tags" => [tag]
           ))
           yield event
         end
