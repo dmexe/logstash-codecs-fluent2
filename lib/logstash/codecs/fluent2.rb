@@ -44,17 +44,17 @@ class LogStash::Codecs::Fluent2 < LogStash::Codecs::Base
 
   def decode(data)
     begin
-      debug("[fluent2] feed data=#{data.bytesize} bytes")
       @decoder.feed(data)
       @decoder.each do |tag, _payload|
-        debug("[fluent2] entry tag=#{tag} payload=#{_payload.bytesize} bytes")
-        epochtime, map = MessagePack.unpack(_payload)
-        event = LogStash::Event.new(map.merge(
-          LogStash::Event::TIMESTAMP => LogStash::Timestamp.at(epochtime),
-          "tags" => tag
-        ))
-        debug("[fluent2] event=#{map.inspect}")
-        yield event
+        entry_decoder = MessagePack::Unpacker.new
+        entry_decoder.feed_each(entries) do |entry|
+          epochtime, map = entry
+          event = LogStash::Event.new(map.merge(
+            LogStash::Event::TIMESTAMP => LogStash::Timestamp.at(epochtime),
+            "tags" => tag
+          ))
+          yield event
+        end
       end
     rescue Exception => e
       $stderr.puts "BROKEN: #{data.inspect}"
